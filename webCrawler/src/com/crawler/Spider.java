@@ -1,21 +1,14 @@
 package com.crawler;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Set;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
 public class Spider {
-	private static final int MAX_PAGES_TO_SEARCH = 15;
 	private Set<String> pagesVisited = new HashSet<String>();
-	private List<String> pagesToVisit = new LinkedList<String>();
-	private List<String> reviewPagesToVisit = new LinkedList<String>();
+	private Set<String> pagesToVisit = new HashSet<String>();
+	private Set<String> reviewPagesToVisit = new HashSet<String>();
 
 	/**
 	 * Our main launching point for the Spider's functionality. Internally it
@@ -26,52 +19,25 @@ public class Spider {
 	 *            - The starting point of the spider
 	 * @param searchWord
 	 *            - The word or string that you are searching for
-	 * @throws ParseException 
+	 * @throws ParseException
 	 */
-	public void search(String url, String searchWord) throws ParseException {
+	public void search(String url) throws ParseException {
 		SpiderLeg leg = new SpiderLeg();
-		String currentUrl = null;
-		while (this.pagesVisited.size() < MAX_PAGES_TO_SEARCH) {
-			if (this.pagesToVisit.isEmpty()) {
-				currentUrl = url;
-				this.pagesVisited.add(url);
-			} else {
-				currentUrl = this.nextUrl();
-			}
-			leg.crawl(currentUrl); // Lots of stuff happening here. Look at the
-									// crawl method in
-									// SpiderLeg
-			boolean success = leg.searchForWord(searchWord);
-			if (success) {
-				System.out.println(String.format(
-						"**Success** Word %s found at %s", searchWord,
-						currentUrl));
-//				break;
-			}
+		if (this.pagesToVisit.isEmpty()) {
+			this.pagesToVisit.add(url);
+		}
+
+		for (Iterator iterator = pagesToVisit.iterator(); iterator.hasNext();) {
+			String page = (String) iterator.next();
+			leg.crawl(page);
 			this.pagesToVisit.addAll(leg.getPageLinks());
 			this.reviewPagesToVisit.addAll(leg.getReviewLinks());
-			
+			this.pagesVisited.add(page);
 		}
+
 		leg.getReviewContent(this.reviewPagesToVisit);
 		System.out.println("\n**Done** Visited " + this.pagesVisited.size()
 				+ " web page(s)");
 	}
-	
 
-
-	/**
-	 * Returns the next URL to visit (in the order that they were found). We
-	 * also do a check to make sure this method doesn't return a URL that has
-	 * already been visited.
-	 * 
-	 * @return
-	 */
-	private String nextUrl() {
-		String nextUrl;
-		do {
-			nextUrl = this.pagesToVisit.remove(0);
-		} while (this.pagesVisited.contains(nextUrl));
-		this.pagesVisited.add(nextUrl);
-		return nextUrl;
-	}
 }

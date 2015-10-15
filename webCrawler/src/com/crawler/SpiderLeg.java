@@ -1,12 +1,10 @@
 package com.crawler;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.jsoup.Connection;
@@ -29,10 +27,6 @@ public class SpiderLeg {
 			Document htmlDocument = connection.get();
 			this.htmlDocument = htmlDocument;
 			if (connection.response().statusCode() == 200) // 200 is the HTTP OK
-															// status code
-															// indicating that
-															// everything is
-															// great.
 			{
 				System.out
 						.println("\n**Visiting** Received web page at " + url);
@@ -43,7 +37,7 @@ public class SpiderLeg {
 
 			}
 		} catch (IOException ioe) {
-			// We were not successful in our HTTP request
+			System.out.println(ioe);
 		}
 	}
 
@@ -59,82 +53,55 @@ public class SpiderLeg {
 	public boolean crawl(String url) {
 
 		browseURL(url);
-		Elements linksOnPage = null;
-		Elements linksOnPage1 = null;
+		Elements pageLinks = null;
+		Elements reviewLinks = null;
 
-		// if (isGetPaginationLinks) {
-		// } else {
-		// }
-
-		linksOnPage = htmlDocument.select("a[data-page]");
-		for (Element link : linksOnPage) {
+		pageLinks = htmlDocument.select("a[data-page]");
+		for (Element link : pageLinks) {
 			this.pageLinks.add(link.absUrl("href"));
 		}
-		System.out.println("Found (" + linksOnPage.size() + ") links");
+		System.out.println("Found (" + pageLinks.size() + ") pagination links");
 
-		linksOnPage1 = htmlDocument.getElementsByAttributeValueStarting(
-				"title", "Read Full Review");
-		for (Element link : linksOnPage1) {
+		reviewLinks = htmlDocument.getElementsByAttributeValueStarting("title",
+				"Read Full Review");
+		for (Element link : reviewLinks) {
 			this.reviewLinks.add(link.absUrl("href"));
 		}
-		System.out.println("Found (" + linksOnPage1.size() + ") links");
+		System.out.println("Found (" + reviewLinks.size() + ") review links");
 
 		return true;
-
 	}
 
-	/**
-	 * Performs a search on the body of on the HTML document that is retrieved.
-	 * This method should only be called after a successful crawl.
-	 * 
-	 * @param searchWord
-	 *            - The word or string to look for
-	 * @return whether or not the word was found
-	 */
-	public boolean searchForWord(String searchWord) {
-		// Defensive coding. This method should only be used after a successful
-		// crawl.
-		if (this.htmlDocument == null) {
-			System.out
-					.println("ERROR! Call crawl() before performing analysis on the document");
-			return false;
-		}
-		System.out.println("Searching for the word " + searchWord + "...");
-		String bodyText = this.htmlDocument.body().text();
-		return bodyText.toLowerCase().contains(searchWord.toLowerCase());
-	}
-	
-	public Set<String> getPageLinks() {
-		return this.pageLinks;
-	}
-
-	public Set<String> getReviewLinks() {
-		return this.reviewLinks;
-	}
-
-
-
-	public void getReviewContent(List<String> reviewPagesToVisit) throws ParseException {
+	public void getReviewContent(Set<String> reviewPagesToVisit)
+			throws ParseException {
 		UserReview userReview = new UserReview();
-		for (String reviewURLs : reviewPagesToVisit)
-		{
+		for (String reviewURLs : reviewPagesToVisit) {
 			browseURL(reviewURLs);
-			userReview.setReviewTitle(((Elements)htmlDocument.select("h1")).text());
-			userReview.setReviewComment(((Elements)htmlDocument.select("div.loststyle")).text());
-			
-			//userReview.setReviewComment(((Elements)htmlDocument.select("div.rvewdetail > div")).get(0).text());
-			Elements userReviewElements=(((Elements)htmlDocument.select("div.rvewdetail > div")));
-			
-			String[] revDet = userReviewElements.get(0).childNodes().get(0).toString().split("&nbsp;&nbsp; ");
+			userReview.setReviewTitle(((Elements) htmlDocument.select("h1"))
+					.text());
+			userReview.setReviewComment(((Elements) htmlDocument
+					.select("div.loststyle")).text());
+
+			// userReview.setReviewComment(((Elements)htmlDocument.select("div.rvewdetail > div")).get(0).text());
+			Elements userReviewElements = (((Elements) htmlDocument
+					.select("div.rvewdetail > div")));
+
+			String[] revDet = userReviewElements.get(0).childNodes().get(0)
+					.toString().split("&nbsp;&nbsp; ");
 			userReview.setReviewer(revDet[0]);
-			
-			Date reviewDate = new SimpleDateFormat("MMM dd, yyyy").parse(revDet[1]);
+
+			Date reviewDate = new SimpleDateFormat("MMM dd, yyyy")
+					.parse(revDet[1]);
 			userReview.setReviewTime(reviewDate);
-			
-			userReview.setViewCount(Integer.parseInt((((Elements)htmlDocument.select("span.userrevview")).text()).substring(0, 4).trim()));
-			
-			//Elements rating=(((Elements)htmlDocument.select("div.rating-stars")));
-			
+
+			userReview
+					.setViewCount(Integer.parseInt((((Elements) htmlDocument
+							.select("span.userrevview")).text())
+							.substring(0, 4).trim()));
+
+			// Elements
+			// rating=(((Elements)htmlDocument.select("div.rating-stars")));
+
 			System.out.println(userReview.getReviewComment());
 			System.out.println(userReview.getReviewer());
 			System.out.println(userReview.getReviewRating());
@@ -144,7 +111,13 @@ public class SpiderLeg {
 
 		}
 	}
-	
-	
+
+	public Set<String> getPageLinks() {
+		return this.pageLinks;
+	}
+
+	public Set<String> getReviewLinks() {
+		return this.reviewLinks;
+	}
 
 }

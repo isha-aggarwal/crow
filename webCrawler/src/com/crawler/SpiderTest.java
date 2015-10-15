@@ -13,6 +13,6 @@ public class SpiderTest {
 	 */
 	public static void main(String[] args) throws ParseException {
 		Spider spider = new Spider();
-		spider.search("http://www.bikedekho.com/bike-reviews.html", "data-page=");//("http://www.gaadi.com/", "Bajaj");
+		spider.search("http://www.bikedekho.com/bike-reviews.html");//("http://www.gaadi.com/", "Bajaj");
 	}//("http://arstechnica.com/", "computer")
 }
