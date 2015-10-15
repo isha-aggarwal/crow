@@ -1,0 +1,25 @@
+<html>
+<head>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	$.getJSON('http://search.twitter.com/search.json?q=earthquake&lang=en&callback=?', function(data) {
+		var data = data.results;
+		var html = "<ul>";	
+		for(var i=0; i<data.length; i++) {
+	    	html += "<li><a href='http://twitter.com/" + data[i].from_user + "'>@" 
+                      + data[i].from_user + "</a>: " + data[i].text + "</li>";
+		}
+		html += "</ul>"
+    	$('.content').html(html);
+	});
+});
+</script>
+
+</head>
+<body>
+<h2>Twitter</h2>
+<div class="content">
+</div>
+</body>
+</html>
